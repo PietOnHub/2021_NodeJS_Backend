@@ -6,7 +6,7 @@ A Playground for learning server side techniques in Node.js
 - hosting node.js on aws
 - switching from http to https
 - using express.js (for better routing)
-- code modulatiztion (especially delivering of html)
+- code modularization (especially delivering of html)
 - using a state of the art authetication with front end encryption
 
 
