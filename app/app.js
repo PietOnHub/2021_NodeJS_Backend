@@ -19,7 +19,6 @@ const PASS_PHRASE = args['pass'] || "yourPassword"; // I know, this shouldnt be 
 let activeUser = false;
 
 
-
 // Event Emitter for Server Requests
 const server = http.createServer((req, res) => {
 
@@ -188,7 +187,6 @@ const server = http.createServer((req, res) => {
         res.end();
         return;
     }
-
 
 }).listen(PORT);
 
