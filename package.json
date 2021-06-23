@@ -1,0 +1,23 @@
+{
+  "name": "2021_nodejs_backend",
+  "version": "0.1.0",
+  "description": "playground",
+  "main": "app.js",
+  "dependencies": {
+    "chalk": "^4.1.1",
+    "minimist": "^1.2.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PietOnHub/2021_NodeJS_Backend.git"
+  },
+  "author": "Piet",
+  "bugs": {
+    "url": "https://github.com/PietOnHub/2021_NodeJS_Backend/issues"
+  },
+  "homepage": "https://github.com/PietOnHub/2021_NodeJS_Backend#readme"
+}

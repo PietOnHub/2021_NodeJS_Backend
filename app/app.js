@@ -1,52 +1,50 @@
+const args = require('minimist')(process.argv.slice(2))
 
 const fs = require("fs");
 const path = require("path");
 const http = require("http");
 const url = require("url");
+const chalk = require("chalk");
 const querystring = require('querystring');
 const Logger = require("./logger");
 
 const logger = new Logger();
 
-const port = process.env.PORT || 3000;
 const FAVICON = path.join(__dirname, '/../public', 'favicon.ico');
-
-// Personal
-const mailTo = "yourMail@hoster.com"
-const fileName = "yourFile.txt"
-
-// I know, this shouldnt be clear to read.. just for the ease of a demonstrator.
-const passPhrase = "yourPassword"
+const PORT = args["port"] || process.env.PORT || 3000;
+const MAIL_TO = args['mail'] || "yourMail@hoster.com";
+const FILE_NAME = args['file'] || "yourFile.txt";
+const PASS_PHRASE = args['pass'] || "yourPassword"; // I know, this shouldnt be clear to read.. just for the ease of a demonstrator.
 
 let activeUser = false;
 
 // Event Emitter for Logger
-logger.on("loggedMessage", (datetime, msg, args) => {
-    console.log(`${datetime}: ${msg} ${(args) ? JSON.stringify(args) : ""}`);
+logger.on("loggedMessage", (datetime, msg, args, color) => {
+        console.log(chalk[color](`${datetime}: ${msg} ${(args) ? JSON.stringify(args) : ""}`));
 });
 
 // Event Emitter for Server Requests
 const server = http.createServer((req, res) => {
 
-    let rawData = '';
+    const { method, url, headers } = req;
+    const ip = req.connection.remoteAddress;
+
+    logger.log("request called..", { url: url, method: method, ip: ip });
 
     // Event Emitters for POST data decoding
-    req.on('data', chunk => {
-        rawData += chunk;
-    })
+    let body = [];
+    req.on("data", (chunk) => {
+        body.push(chunk);
+    }).on("end", () => {
+        body = Buffer.concat(body).toString();
+        passPhrase = querystring.decode(body).password;
 
-    req.on('end', () => {
-        let parsedData = querystring.decode(rawData);
-
-        if (parsedData.password == passPhrase) {
-            logger.log("Welcome Member");
-            rawData = "";
+        if (passPhrase == PASS_PHRASE) {
+            logger.warn("Welcome Member");
+            body = "";
             activeUser = true;
         }
     })
-
-    var ip = req.connection.remoteAddress;
-    logger.log("request called..", { url: req.url, method: req.method, ip: ip });
 
     if (req.method === "GET" && req.url === "/favicon.ico") {
         res.setHeader('Content-Type', 'image/x-icon');
@@ -78,8 +76,8 @@ const server = http.createServer((req, res) => {
                <nav class="navbar navbar-expand-lg navbar-light bg-light">
                     <a class="nav-link active" href='/'> Start </a>
                     <a class="nav-link" href='/about'> About This </a>
-                    <a class="nav-link" href='/api/getCV'> Download CV </a>
-                    <a class="nav-link" href="mailto:${mailTo}"> Contact </a>
+                    <a class="nav-link" href='/api/getFile'> Download File </a>
+                    <a class="nav-link" href="mailto:${MAIL_TO}"> Contact </a>
                     <form action="/login" method="post">
                         <input placeholder="password" name="password" type="password" id="password"/>
                         <button type="submit">Login</button>
@@ -120,8 +118,8 @@ const server = http.createServer((req, res) => {
                <nav class="navbar navbar-expand-lg navbar-light bg-light">
                     <a class="nav-link" href='/'> Start </a>
                     <a class="nav-link active" href='/about'> About This </a>
-                    <a class="nav-link" href='/api/getCV'> Download CV </a>
-                    <a class="nav-link" href="mailto:${mailTo}"> Contact </a>
+                    <a class="nav-link" href='/api/getFile'> Download File </a>
+                    <a class="nav-link" href="mailto:${MAIL_TO}"> Contact </a>
                     <form action="/" method="post">
                         <input placeholder="password" name="password" type="password" id="password"/>
                         <button type="submit">Login</button>
@@ -154,15 +152,15 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    if (req.url === "/api/getCV") {
+    if (req.url === "/api/getFile") {
         if (activeUser) {
-            logger.log(`exporting: ${fileName}`)
-            const file = fs.createReadStream(`./resources/${fileName}`);
-            res.writeHead(200, { 'Content-disposition': `attachment; filename=${fileName}}` });
+            logger.warn(`exporting: ${FILE_NAME}`)
+            const file = fs.createReadStream(`./resources/${FILE_NAME}`);
+            res.writeHead(200, { 'Content-disposition': `attachment; filename=${FILE_NAME}}` });
             file.pipe(res);
         }
         else {
-            logger.log("no active user")
+            logger.error("filerequest not permitted. unknown user")
             res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
             res.write(`
             <!DOCTYPE html>
@@ -182,12 +180,29 @@ const server = http.createServer((req, res) => {
         }
         return;
     }
+    if (req.url === "/api/killSwitch" && activeUser) {
+        logger.warn("shutting down process")
+        process.kill(process.pid, "SIGTERM");
+    }
+    else {
+        res.statusCode = 302;
+        res.setHeader('Location', '/');
+        res.end();
+        return;
+    }
 
-}).listen(port);
+
+}).listen(PORT);
 
 server.on("connection", (arg) => {
     logger.log("connected to server");
 });
 
+process.on("SIGTERM", () => {
+    server.close(() => {
+      console.warn('process terminated')
+    })
+})
 
-logger.log(`Listening to port ${port}...`);
+
+logger.log(`Listening to port ${PORT}...`);
