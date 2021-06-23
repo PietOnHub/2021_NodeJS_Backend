@@ -13,7 +13,7 @@ const logger = new Logger();
 const FAVICON = path.join(__dirname, '/../public', 'favicon.ico');
 const PORT = args["port"] || process.env.PORT || 3000;
 const MAIL_TO = args['mail'] || "yourMail@hoster.com";
-const FILE_NAME = args['file'] || "yourFile.txt";
+const FILE_NAME = args['file'] || "yourFile";
 const PASS_PHRASE = args['pass'] || "yourPassword"; // I know, this shouldnt be clear to read.. just for the ease of a demonstrator.
 
 let activeUser = false;
