@@ -156,7 +156,7 @@ const server = http.createServer((req, res) => {
         if (activeUser) {
             logger.warn(`exporting: ${FILE_NAME}`)
             const file = fs.createReadStream(`./resources/${FILE_NAME}`);
-            res.writeHead(200, { 'Content-disposition': `attachment; filename=${FILE_NAME}}` });
+            res.writeHead(200, { 'Content-disposition': `attachment; filename=${FILE_NAME}` });
             file.pipe(res);
         }
         else {
