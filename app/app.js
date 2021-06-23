@@ -4,11 +4,11 @@ const fs = require("fs");
 const path = require("path");
 const http = require("http");
 const url = require("url");
-const chalk = require("chalk");
-const querystring = require('querystring');
-const Logger = require("./logger");
 
-const logger = new Logger();
+const querystring = require('querystring');
+
+const logger = require("./logger");
+const keyListener = require("./keyListener");
 
 const FAVICON = path.join(__dirname, '/../public', 'favicon.ico');
 const PORT = args["port"] || process.env.PORT || 3000;
@@ -18,10 +18,7 @@ const PASS_PHRASE = args['pass'] || "yourPassword"; // I know, this shouldnt be 
 
 let activeUser = false;
 
-// Event Emitter for Logger
-logger.on("loggedMessage", (datetime, msg, args, color) => {
-        console.log(chalk[color](`${datetime}: ${msg} ${(args) ? JSON.stringify(args) : ""}`));
-});
+
 
 // Event Emitter for Server Requests
 const server = http.createServer((req, res) => {
@@ -46,20 +43,20 @@ const server = http.createServer((req, res) => {
         }
     })
 
-    if (req.method === "GET" && req.url === "/favicon.ico") {
+    if (method === "GET" && url === "/favicon.ico") {
         res.setHeader('Content-Type', 'image/x-icon');
         fs.createReadStream(FAVICON).pipe(res);
         return
     }
 
-    if (req.url === "/login") {
+    if (url === "/login") {
         res.statusCode = 302;
         res.setHeader('Location', '/');
         res.end();
         return;
     }
 
-    if (req.url === "/") {
+    if (url === "/") {
         res.statusCode = 200;
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
         res.write(`
@@ -100,7 +97,7 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    if (req.url === "/about") {
+    if (url === "/about") {
         res.statusCode = 200;
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
         res.write(`
@@ -152,7 +149,7 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    if (req.url === "/api/getFile") {
+    if (url === "/api/getFile") {
         if (activeUser) {
             logger.warn(`exporting: ${FILE_NAME}`)
             const file = fs.createReadStream(`./resources/${FILE_NAME}`);
@@ -180,11 +177,12 @@ const server = http.createServer((req, res) => {
         }
         return;
     }
-    if (req.url === "/api/killSwitch" && activeUser) {
+    if (url === "/api/killSwitch" && activeUser) {
         logger.warn("shutting down process")
         process.kill(process.pid, "SIGTERM");
     }
     else {
+        logger.warn("redirecting");
         res.statusCode = 302;
         res.setHeader('Location', '/');
         res.end();
@@ -203,6 +201,5 @@ process.on("SIGTERM", () => {
       console.warn('process terminated')
     })
 })
-
 
 logger.log(`Listening to port ${PORT}...`);

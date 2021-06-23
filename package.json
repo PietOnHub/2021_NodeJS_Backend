@@ -1,6 +1,6 @@
 {
   "name": "2021_nodejs_backend",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "playground",
   "main": "app.js",
   "dependencies": {
@@ -9,6 +9,7 @@
   },
   "devDependencies": {},
   "scripts": {
+    "start": "npx nodemon ./app/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
