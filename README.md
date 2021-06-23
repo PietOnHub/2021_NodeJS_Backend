@@ -2,7 +2,7 @@
 A Playground for learning server side techniques in Node.js
 
 ## Usage
-- node .\app\app.js --mail="yourMail" --port="3000" --pass="passphrase" --file="someFIleToServe"
+- node .\app\app.js --mail="yourMail" --port="3000" --pass="passphrase" --file="yourFile"
 
 ## Wishlist for next sprints
 
